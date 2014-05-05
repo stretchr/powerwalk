@@ -38,6 +38,7 @@ func WalkLimit(root string, walkFn filepath.WalkFunc, limit int) error {
 		panic("powerwalk: limit must be greater than zero.")
 	}
 
+	var filesWg sync.WaitGroup
 	files := make(chan *walkArgs)
 	kill := make(chan struct{})
 	errs := make(chan error)
@@ -50,6 +51,7 @@ func WalkLimit(root string, walkFn filepath.WalkFunc, limit int) error {
 					if err := walkFn(file.path, file.info, file.err); err != nil {
 						errs <- err
 					}
+					filesWg.Done()
 				case <-kill:
 					return
 				}
@@ -69,8 +71,11 @@ func WalkLimit(root string, walkFn filepath.WalkFunc, limit int) error {
 		}
 	}()
 
-	var wg sync.WaitGroup
-	wg.Add(1)
+	// setup a waitgroup and wait for everything to
+	// be done
+	var walkerWg sync.WaitGroup
+	walkerWg.Add(1)
+
 	go func() {
 
 		filepath.Walk(root, func(p string, info os.FileInfo, err error) error {
@@ -79,20 +84,24 @@ func WalkLimit(root string, walkFn filepath.WalkFunc, limit int) error {
 				close(files)
 				return errors.New("Error in walk. Cannot continue.")
 			default:
+				filesWg.Add(1)
 				select {
 				case files <- &walkArgs{path: p, info: info, err: err}:
-				default:
 				}
 				return nil
 			}
 		})
 
-		wg.Done()
+		// everything is done
+		walkerWg.Done()
+
 	}()
 
-	wg.Wait()
+	// wait for all walker calls
+	walkerWg.Wait()
 
 	if walkErr == nil {
+		filesWg.Wait()
 		close(kill)
 	}
 
