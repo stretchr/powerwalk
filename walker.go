@@ -9,7 +9,7 @@ import (
 
 // DefaultConcurrentWalks is the default number of files that will be walked at the
 // same time.
-const DefaultConcurrentWalks int = 50
+const DefaultConcurrentWalks int = 100
 
 // Walk walks the file tree rooted at root, calling walkFn for each file or
 // directory in the tree, including root. All errors that arise visiting files
@@ -47,7 +47,10 @@ func WalkLimit(root string, walkFn filepath.WalkFunc, limit int) error {
 		go func(i int) {
 			for {
 				select {
-				case file := <-files:
+				case file, ok := <-files:
+					if !ok {
+						continue
+					}
 					if err := walkFn(file.path, file.info, file.err); err != nil {
 						errs <- err
 					}
@@ -82,7 +85,7 @@ func WalkLimit(root string, walkFn filepath.WalkFunc, limit int) error {
 			select {
 			case <-kill:
 				close(files)
-				return errors.New("Error in walk. Cannot continue.")
+				return errors.New("kill received while walking")
 			default:
 				filesWg.Add(1)
 				select {

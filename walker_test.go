@@ -17,12 +17,12 @@ import (
 
 const testFiles string = "./test_files"
 
-func makeTestFiles() {
+func makeTestFiles(dirs, files int) {
 	var counter int
-	for i := 1; i < 11; i++ {
+	for i := 1; i < dirs+1; i++ {
 		dir := fmt.Sprintf("%s/dir_%02d", testFiles, i)
 		if err := os.MkdirAll(dir, 0777); err == nil {
-			for j := 1; j < 21; j++ {
+			for j := 1; j < files+1; j++ {
 				counter++
 				filename := fmt.Sprintf("%s/file-%03d", dir, counter)
 				ioutil.WriteFile(filename, []byte(fmt.Sprintf("This is file %d", counter)), 0777)
@@ -43,7 +43,7 @@ func BenchmarkWalkFilepath(b *testing.B) {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	b.StopTimer()
-	makeTestFiles()
+	makeTestFiles(10, 20)
 
 	walkFunc := func(p string, info os.FileInfo, err error) error {
 		time.Sleep(10 * time.Millisecond)
@@ -68,7 +68,7 @@ func BenchmarkPowerwalk(b *testing.B) {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	b.StopTimer()
-	makeTestFiles()
+	makeTestFiles(10, 20)
 
 	walkFunc := func(p string, info os.FileInfo, err error) error {
 		time.Sleep(10 * time.Millisecond)
@@ -91,7 +91,7 @@ func TestWalkFilepath(t *testing.T) {
 	// max concurrency out
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
-	makeTestFiles()
+	makeTestFiles(10, 20)
 	defer deleteTestFiles()
 
 	seen := make(map[string]bool)
@@ -119,7 +119,7 @@ func TestPowerWalk(t *testing.T) {
 	// max concurrency out
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
-	makeTestFiles()
+	makeTestFiles(10, 20)
 	defer deleteTestFiles()
 
 	var seenLock sync.Mutex
@@ -145,12 +145,59 @@ func TestPowerWalk(t *testing.T) {
 
 }
 
+/*
+This test is commented out as it takes an extremely long time.
+func TestPowerWalkMassive(t *testing.T) {
+
+	// max concurrency out
+	runtime.GOMAXPROCS(runtime.NumCPU())
+
+	rand.Seed(time.Now().UnixNano())
+
+	makeTestFiles(200, 100)
+	defer deleteTestFiles()
+
+	count := 0
+	total := 200 * 100
+
+	var seenLock sync.Mutex
+	seen := make(map[string]bool)
+	walkFunc := func(p string, info os.FileInfo, err error) error {
+		if !info.IsDir() {
+			filename := path.Base(p)
+			seenLock.Lock()
+			seen[filename] = true
+			count++
+			seenLock.Unlock()
+
+			// simulate some processing
+			time.Sleep(time.Duration(rand.Int31n(1000)) * time.Millisecond)
+			fmt.Printf("\r%d of %d", count, total)
+			os.Stdout.Sync()
+		}
+		return nil
+	}
+
+	assert.NoError(t, Walk(testFiles, walkFunc))
+
+	fmt.Println("")
+
+	// make sure everything was seen
+	if assert.NotEqual(t, len(seen), 0, "Walker should visit at least one file.") {
+		for k, v := range seen {
+			assert.True(t, v, k)
+		}
+	}
+
+}
+*/
+
 func TestPowerWalkLimit(t *testing.T) {
 
 	// max concurrency out
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
-	makeTestFiles()
+	makeTestFiles(10, 20)
 	defer deleteTestFiles()
 
 	var seenLock sync.Mutex
@@ -178,7 +225,7 @@ func TestPowerWalkLimit(t *testing.T) {
 
 func TestPowerWalkLimitInvalidArgs(t *testing.T) {
 
-	makeTestFiles()
+	makeTestFiles(10, 20)
 	defer deleteTestFiles()
 
 	walkFunc := func(p string, info os.FileInfo, err error) error {
@@ -192,7 +239,7 @@ func TestPowerWalkLimitInvalidArgs(t *testing.T) {
 
 func TestPowerWalkLimitUselessThreadsDontBlock(t *testing.T) {
 
-	makeTestFiles()
+	makeTestFiles(10, 20)
 	defer deleteTestFiles()
 
 	walkFunc := func(p string, info os.FileInfo, err error) error {
@@ -207,10 +254,10 @@ func TestPowerWalkError(t *testing.T) {
 	// max concurrency out
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
-	makeTestFiles()
+	makeTestFiles(10, 20)
 	defer deleteTestFiles()
 
-	theErr := errors.New("Oops")
+	theErr := errors.New("kaboom")
 	var seenLock sync.Mutex
 	seen := make(map[string]bool)
 	walkFunc := func(p string, info os.FileInfo, err error) error {
