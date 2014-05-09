@@ -38,7 +38,11 @@ func WalkLimit(root string, walkFn filepath.WalkFunc, limit int) error {
 		panic("powerwalk: limit must be greater than zero.")
 	}
 
+	// filesMg is a wait group that waits for all files to
+	// be processed before finishing.
 	var filesWg sync.WaitGroup
+
+	// files is a channel that receives lists of channels
 	files := make(chan *walkArgs)
 	kill := make(chan struct{})
 	errs := make(chan error)
