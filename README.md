@@ -4,7 +4,7 @@ Go package for concurrently walking files.
 
 ## Usage
 
-Powerwalk is a drop-in replacement for the `filepath.Walk` method, and so has the same signature, even using the `filepath.WalkFunc` too.
+Powerwalk is a drop-in replacement for the `filepath.Walk` method ([read about that for more details](http://golang.org/pkg/path/filepath/#Walk)), and so has the same signature, even using the `filepath.WalkFunc` too.
 
 ```
 powerwalk.Walk(root string, walkFn filepath.WalkFunc) error
