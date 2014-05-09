@@ -115,6 +115,8 @@ func WalkLimit(root string, walkFn filepath.WalkFunc, limit int) error {
 	return walkErr
 }
 
+// walkArgs holds the arguments that were passed to the Walk or WalkLimit
+// functions.
 type walkArgs struct {
 	path string
 	info os.FileInfo
