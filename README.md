@@ -16,4 +16,4 @@ By default, Powerwalk will call the `walkFn` for `powerwalk.DefaultConcurrentWal
 WalkLimit(root string, walkFn filepath.WalkFunc, limit int) error
 ```
 
-The `WalkLimit` function does the same as `Walk`, except allows you to specify the number of files to concurrently walk using the `limit` argument.  The `limit` argument must be one or higher (i.e. `>0`).  Specificying a limit that's too high, causes unnecessary overhead so sensible numbers are encouraged.
+The `WalkLimit` function does the same as `Walk`, except allows you to specify the number of files to concurrently walk using the `limit` argument.  The `limit` argument must be one or higher (i.e. `>0`).  Specificying a limit that's too high, causes unnecessary overhead so sensible numbers are encouraged but not enforced.
