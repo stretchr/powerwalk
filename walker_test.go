@@ -146,7 +146,7 @@ func TestPowerWalk(t *testing.T) {
 }
 
 /*
-This test is commented out as it takes an extremely long time.
+// This test is commented out as it takes an extremely long time.
 func TestPowerWalkMassive(t *testing.T) {
 
 	// max concurrency out
@@ -172,15 +172,12 @@ func TestPowerWalkMassive(t *testing.T) {
 
 			// simulate some processing
 			time.Sleep(time.Duration(rand.Int31n(1000)) * time.Millisecond)
-			fmt.Printf("\r%d of %d", count, total)
 			os.Stdout.Sync()
 		}
 		return nil
 	}
 
 	assert.NoError(t, Walk(testFiles, walkFunc))
-
-	fmt.Println("")
 
 	// make sure everything was seen
 	if assert.NotEqual(t, len(seen), 0, "Walker should visit at least one file.") {
