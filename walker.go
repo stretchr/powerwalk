@@ -8,7 +8,8 @@ import (
 )
 
 // DefaultConcurrentWalks is the default number of files that will be walked at the
-// same time.
+// same time when the Walk function is called.
+// To use a value other than this one, use the WalkLimit function.
 const DefaultConcurrentWalks int = 100
 
 // Walk walks the file tree rooted at root, calling walkFn for each file or
