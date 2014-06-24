@@ -1,6 +1,6 @@
 # Powerwalk
 
-Go package for concurrently walking files.
+Go package for walking files and concurrently calling user code to handle each file.  This package walks the file system in the same way `filepath.Walk` does, except instead of calling the `walkFn` inline, it uses goroutines to allow the files to be handled concurrently.
 
 ## Usage
 
