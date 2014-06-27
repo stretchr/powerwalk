@@ -2,6 +2,12 @@
 
 Go package for walking files and concurrently calling user code to handle each file.  This package walks the file system in the same way `filepath.Walk` does, except instead of calling the `walkFn` inline, it uses goroutines to allow the files to be handled concurrently.
 
+Powerwalk functions by walking concurrently over many files. In order to realize any benefits from this approach, you must tell the runtime to use multiple CPUs. For example:
+
+```
+runtime.GOMAXPROCS(runtime.NumCPU())
+```
+
 ## Usage
 
 Powerwalk is a drop-in replacement for the `filepath.Walk` method ([read about that for more details](http://golang.org/pkg/path/filepath/#Walk)), and so has the same signature, even using the `filepath.WalkFunc` too.
@@ -20,6 +26,3 @@ The `WalkLimit` function does the same as `Walk`, except allows you to specify t
 
 See the [godoc documentation](http://godoc.org/github.com/stretchr/powerwalk) for more information.
 
-## Notes
-
-Powerwalk functions by walking concurrently over many files. In order to realize any benefits from this approach, you must tell the runtime to use multiple CPUs. For example: `runtime.GOMAXPROCS(runtime.NumCPU())`
